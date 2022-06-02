@@ -15,11 +15,17 @@ public class MovimientoJugador : MonoBehaviour
     public float fuerzaSalto;
     public float saltoCooldown;
     public float multiplicadorAire;
+    public float aireVel;
 
     [Header("Agacharse")]
     public float agacharseVel;
     public float scaleAgachado;
     float scaleAgachadoI;
+
+    [Header("Slope Handling")]
+    public float maxSlopeAngle;
+    private RaycastHit slopeHit;
+    private bool exitingSlope;
 
     public Transform orientacion;
 
@@ -60,6 +66,7 @@ public class MovimientoJugador : MonoBehaviour
     {
         Ingreso();
         HandlerEstado();
+        controlVel();
         isOnGround = Physics.Raycast(transform.position, Vector3.down, alturaJugador * 0.5f + 0.2f, piso);
         if (isOnGround)
         {
@@ -69,7 +76,7 @@ public class MovimientoJugador : MonoBehaviour
         else
         {
             rb.drag = 0;
-        }
+        }   
     }
 
     private void FixedUpdate()
@@ -82,8 +89,9 @@ public class MovimientoJugador : MonoBehaviour
         inputHorizontal = Input.GetAxisRaw("Horizontal");
         inputVertical = Input.GetAxisRaw("Vertical");
 
-        if(Input.GetKeyDown(KeyCode.Space) && canJump == true && saltos > 0)
+        if(Input.GetKey(KeyCode.Space) && canJump == true && saltos > 0)
         {
+            exitingSlope = true;
             saltos--;
             saltar();
         }
@@ -102,6 +110,13 @@ public class MovimientoJugador : MonoBehaviour
 
     void Moverse()
     {
+        if (OnSlope() && !exitingSlope)
+        {
+            rb.AddForce(GetSlopeMoveDirection() * velMov * 20f, ForceMode.Force);
+
+            if (rb.velocity.y > 0)
+                rb.AddForce(Vector3.down * 80f, ForceMode.Force);
+        }
         direccionMov = orientacion.forward * inputVertical + orientacion.right * inputHorizontal;
         if (isOnGround)
         {
@@ -111,16 +126,26 @@ public class MovimientoJugador : MonoBehaviour
         {
             rb.AddForce(direccionMov.normalized * velMov * 10f * multiplicadorAire, ForceMode.Force);
         }
-        
     }
 
     void controlVel()
     {
-        Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-        if(flatVel.magnitude > velMov)
+        if (OnSlope() && !exitingSlope)
         {
-            Vector3 limite = flatVel.normalized * velMov;
-            rb.velocity = new Vector3(limite.x, rb.velocity.y, limite.z);
+            Debug.Log("buenas");
+            if (rb.velocity.magnitude > velMov)
+            {
+                rb.velocity = rb.velocity.normalized;
+            }
+        }
+        else
+        {
+            Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+            if (flatVel.magnitude > velMov)
+            {
+                Vector3 limite = flatVel.normalized * velMov;
+                rb.velocity = new Vector3(limite.x, rb.velocity.y, limite.z);
+            }
         }
     }
 
@@ -134,6 +159,7 @@ public class MovimientoJugador : MonoBehaviour
     {
         canJump = true;
         saltos = 1;
+        exitingSlope = false;
     }
 
     void HandlerEstado()
@@ -142,6 +168,7 @@ public class MovimientoJugador : MonoBehaviour
         {
             state = MovementState.agachado;
             velMov = agacharseVel;
+            canJump = false;
         }
 
         if(isOnGround && Input.GetKey(KeyCode.LeftShift))
@@ -157,6 +184,28 @@ public class MovimientoJugador : MonoBehaviour
         else
         {
             state = MovementState.aire;
+            velMov = aireVel;
         }
+    }
+    private bool OnSlope()
+    {
+        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, alturaJugador * 0.5f + 0.3f))
+        {
+            float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+            if (state == MovementState.corriendo) {
+                velMov = correrVel;
+            }
+            else if (state == MovementState.caminando)
+            {
+                velMov = caminarVel;
+            }
+            return angle < maxSlopeAngle && angle != 0;
+        }
+
+        return false;
+    }
+    private Vector3 GetSlopeMoveDirection()
+    {
+        return Vector3.ProjectOnPlane(direccionMov, slopeHit.normal).normalized;
     }
 }
