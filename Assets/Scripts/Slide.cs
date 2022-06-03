@@ -11,7 +11,6 @@ public class Slide : MonoBehaviour
     MovimientoJugador Mov;
 
     [Header("Deslizarse")]
-    public float tiempoMaximoSlide;
     public float fuerza;
     float tiempoSlide;
 
@@ -45,7 +44,7 @@ public class Slide : MonoBehaviour
     void MovSlide()
     {
         Vector3 InputDireccion = orientacion.forward * InputVertical + orientacion.right * InputHorizontal;
-        rb.AddForce(InputDireccion.normalized * fuerza, ForceMode.Force);
+        rb.AddForce(InputDireccion.normalized * fuerza, ForceMode.Impulse);
     }
 
     void Update()

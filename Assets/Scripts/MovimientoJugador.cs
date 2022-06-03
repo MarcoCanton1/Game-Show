@@ -31,7 +31,11 @@ public class MovimientoJugador : MonoBehaviour
 
     public LayerMask piso;
 
+    public UiManager UIM;
+
     public MovementState state;
+
+    public bool sliding;
 
     float inputHorizontal;
     float inputVertical;
@@ -95,14 +99,14 @@ public class MovimientoJugador : MonoBehaviour
             saltos--;
             saltar();
         }
-
-        if (Input.GetKeyDown(KeyCode.LeftControl))
+       
+        if (Input.GetKey(KeyCode.C))
         {
             transform.localScale = new Vector3(transform.localScale.x, scaleAgachado, transform.localScale.z);
             rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
         }
 
-        if (Input.GetKeyUp(KeyCode.LeftControl))
+        if (Input.GetKeyUp(KeyCode.C))
         {
             transform.localScale = new Vector3(transform.localScale.x, scaleAgachadoI, transform.localScale.z);
         }
@@ -164,7 +168,7 @@ public class MovimientoJugador : MonoBehaviour
 
     void HandlerEstado()
     {
-        if (Input.GetKey(KeyCode.LeftControl))
+        if (Input.GetKey(KeyCode.C))
         {
             state = MovementState.agachado;
             velMov = agacharseVel;
