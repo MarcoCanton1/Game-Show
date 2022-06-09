@@ -4,71 +4,90 @@ using UnityEngine;
 
 public class Slide : MonoBehaviour
 {
-    [Header("Referencias")]
+    [Header("Referencia")]
     public Transform orientacion;
-    public Transform JugadorObj;
+    public Transform playerObj;
     Rigidbody rb;
-    MovimientoJugador Mov;
+    MovimientoJugador MJ;
 
-    [Header("Deslizarse")]
-    public float fuerza;
-    float tiempoSlide;
+    [Header("Sliding")]
+    public float tiempoMaxSlide;
+    public float fuerzaSlide;
+    float slideTimer;
 
-    public float ScaleYSlide;
-    float ScaleYSlideI;
+    public float scaleYSlide;
+    float scaleYSlideI; //la I marca que es inicial, en tras palabras es el scale en el eje Y inicial
 
-    float InputHorizontal;
-    float InputVertical;
+    [Header("Input")]
+    public KeyCode slideKey = KeyCode.LeftControl;
+    float inputHorizontal;
+    float inputVertical;
 
-    bool Sliding;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        Mov = GetComponent<MovimientoJugador>();
-
-        ScaleYSlideI = JugadorObj.localScale.y;
-    }
-
-    void SlideIniciado()
-    {
-        Sliding = true;
-        JugadorObj.localScale = new Vector3(JugadorObj.localScale.x, ScaleYSlide, JugadorObj.localScale.z);
-        rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
-    }
-    void SlideFin()
-    {
-        Sliding = false;
-        JugadorObj.localScale = new Vector3(JugadorObj.localScale.x, ScaleYSlideI, JugadorObj.localScale.z);
-    }
-    void MovSlide()
-    {
-        Vector3 InputDireccion = orientacion.forward * InputVertical + orientacion.right * InputHorizontal;
-        rb.AddForce(InputDireccion.normalized * fuerza, ForceMode.Impulse);
+        MJ = GetComponent<MovimientoJugador>();
+        scaleYSlideI = playerObj.localScale.y;
     }
 
     void Update()
     {
-        InputHorizontal = Input.GetAxisRaw("Horizontal");
-        InputVertical = Input.GetAxisRaw("Vertical");
+        inputHorizontal = Input.GetAxisRaw("Horizontal");
+        inputVertical = Input.GetAxisRaw("Vertical");
 
-        if (Input.GetKeyDown(KeyCode.LeftControl) && (InputHorizontal != 0 || InputVertical != 0))
+        if (Input.GetKeyDown(slideKey) && (inputHorizontal != 0 || inputVertical != 0))
         {
-            SlideIniciado();
+            StartSlide();
         }
-
-        if (Input.GetKeyUp(KeyCode.LeftControl) && Sliding)
+        
+        if (Input.GetKeyUp(slideKey) && MJ.sliding)
         {
-            SlideFin();
+            StopSlide();
         }
     }
 
     void FixedUpdate()
     {
-        if (Sliding)
+        if (MJ.sliding)
         {
             MovSlide();
         }
+    }
+
+    void StartSlide()
+    {
+        MJ.sliding = true;
+        playerObj.localScale = new Vector3(playerObj.localScale.x, scaleYSlide, playerObj.localScale.z);
+        rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
+        slideTimer = tiempoMaxSlide;
+    }
+
+    private void MovSlide()
+    {
+        Vector3 inputDirection = orientacion.forward * inputVertical + orientacion.right * inputHorizontal;
+
+        if (!MJ.OnSlope() || rb.velocity.y > -0.1f)
+        {
+            rb.AddForce(inputDirection.normalized * fuerzaSlide, ForceMode.Force);
+            slideTimer -= Time.deltaTime;
+        }
+        else
+        {
+            rb.AddForce(MJ.GetSlopeMoveDirection(inputDirection) * fuerzaSlide, ForceMode.Force);
+        }
+
+        if (slideTimer <= 0)
+        {
+            StopSlide();
+        }
+    }
+
+    private void StopSlide()
+    {
+        MJ.sliding = false;
+
+        playerObj.localScale = new Vector3(playerObj.localScale.x, scaleYSlideI, playerObj.localScale.z);
     }
 }
  
