@@ -951,6 +951,7 @@ MonoBehaviour:
   musicaSource: {fileID: 0}
   volumenMusica: 0
   volumen: {fileID: 1582634761}
+  amongus: {fileID: 100000, guid: a2b74d592be780d4aabfc087505f9ca3, type: 3}
 --- !u!4 &504744176
 Transform:
   m_ObjectHideFlags: 0

@@ -12,12 +12,18 @@ public class Menu : MonoBehaviour
     public AudioSource musicaSource;
     public float volumenMusica;
     public Slider volumen;
+    public GameObject amongus;
 
     void Start()
     {
         Cursor.lockState = CursorLockMode.None;
         panelConfig.gameObject.SetActive(false);
         musicaSource = GetComponent<AudioSource>();
+        for (int i = 0; i <= 10; i++)
+        {
+            GameObject clon = Instantiate(amongus);
+            Destroy(clon, 3f);
+        }
     }
 
     void Update()
@@ -32,6 +38,7 @@ public class Menu : MonoBehaviour
         }
         musicaSource.volume = volumen.value;
         volumenMusica = volumen.value;
+
     }
 
     public void Iniciar()

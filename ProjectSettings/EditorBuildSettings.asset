@@ -17,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Perder.unity
     guid: e9eed4db15e46f540821a36f97f797bd
+  - enabled: 1
+    path: Assets/Scenes/Ganar.unity
+    guid: f41eb0b1d9920044484b6054ae4b9e12
   m_configObjects: {}
